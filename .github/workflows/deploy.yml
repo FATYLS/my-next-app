@@ -1,0 +1,41 @@
+name: Deploy Next.js App
+
+on:
+  push:
+    branches:
+      - main  # Change si nécessaire
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 🛎️ Checkout du repo
+        uses: actions/checkout@v4
+
+      - name: 🔧 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - name: 📦 Install dependencies
+        run: npm install
+
+      - name: 🧪 Run Tests
+        run: npm test  # Change cette ligne si tu n'as pas encore de tests
+
+      - name: 🔨 Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_PASSWORD }}
+
+      - name: 🏗️ Build Docker Image
+        run: |
+          docker build -t fatyls/my-next-app:latest .
+          docker tag fatyls/my-next-app:latest fatyls/my-next-app:${{ github.sha }}
+
+      - name: 🚀 Push Docker Image
+        run: |
+          docker push fatyls/my-next-app:latest
+          docker push fatyls/my-next-app:${{ github.sha }}
